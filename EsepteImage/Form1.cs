@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using System.Diagnostics;
 using EsepteImage.MachineLearningNoticeProperty.Model;
 using Microsoft.ML;
 
@@ -30,14 +31,9 @@ namespace EsepteImage
 
         public Form1()
         {
-            MLContext mlContext = new MLContext();
-            ITransformer mlModel = mlContext.Model.Load(MLNetModelPath, out var modelInputSchema);
-            var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
-            PredictionEngine = new Lazy<PredictionEngine<ModelInput, ModelOutput>>(predEngine);
 
             InitializeComponent();
-
-            panel2.Visible = false;
+            panel2.Visible = true;
         }
 
         public static ModelOutput Predict(ModelInput input)
@@ -65,6 +61,8 @@ namespace EsepteImage
                 .Where(s => s.EndsWith(".jpg") || s.EndsWith(".png") || s.EndsWith(".jpeg")).ToArray();
 
             label4.Text = filesPaths.Length + "";
+
+
         }
 
         private string Recognize(string imagePath)
@@ -74,10 +72,7 @@ namespace EsepteImage
             {
                 ImageSource = imagePath,
             };
-
             var predictionResult = Predict(sampleData);
-
-            
 
             return predictionResult.Prediction;
         }
@@ -125,10 +120,20 @@ namespace EsepteImage
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            panel1.Visible = false;
             panel2.Visible = true;
+            label5.Text = "Инициализация машинного обучения...";
+
+            MLContext mlContext = new MLContext();
+            ITransformer mlModel = mlContext.Model.Load(MLNetModelPath, out var modelInputSchema);
+            var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
+            PredictionEngine = new Lazy<PredictionEngine<ModelInput, ModelOutput>>(predEngine);
+
+            label5.Text = "Обработка изображений...";
+
+            panel1.Visible = false;
             progressBar1.Value = 1;
-            tabControl2.Visible = false;
+            tabControl2.Visible = true;
+            panel2.Visible = true;
 
             int x = 0;
             int y = 0;
@@ -142,13 +147,15 @@ namespace EsepteImage
             {
                 i++;
                 n++;
-                label14.Text = n + l;
                 progressBar1.Value = (int)GetProcent(n);
+
+                //if (n == 1000)
+                //{
+                //    break;
+                //}
 
                 // reco
                 string result = Recognize(filePath);
-                label6.Text = GetTypeRu(result);
-
                 // save
                 ImageTypes.Add(new ImageType { ImagePath = filePath, Prediction = result });
 
@@ -156,17 +163,17 @@ namespace EsepteImage
             }
 
             tabControl2.Visible = true;
-            panel2.Visible = false;
+            panel2.Visible = true;
 
             // info
-            label13.Text = GetPagination(tabsImages[7]);
-            label12.Text = GetPagination(tabsImages[6]);
-            label11.Text = GetPagination(tabsImages[5]);
-            label10.Text = GetPagination(tabsImages[4]);
-            label9.Text = GetPagination(tabsImages[3]);
-            label8.Text = GetPagination(tabsImages[2]);
-            label7.Text = GetPagination(tabsImages[1]);
-            label1.Text = GetPagination(tabsImages[0]);
+            //label13.Text = GetPagination(tabsImages[7]);
+            //label12.Text = GetPagination(tabsImages[6]);
+            //label11.Text = GetPagination(tabsImages[5]);
+            //label10.Text = GetPagination(tabsImages[4]);
+            //label9.Text = GetPagination(tabsImages[3]);
+            //label8.Text = GetPagination(tabsImages[2]);
+            //label7.Text = GetPagination(tabsImages[1]);
+            //label1.Text = GetPagination(tabsImages[0]);
         }
 
         private double GetProcent(int v)
@@ -306,6 +313,16 @@ namespace EsepteImage
         private void Form1_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            ProcessStartInfo psInfo = new ProcessStartInfo
+            {
+                FileName = "https://index.html",
+                UseShellExecute = true
+            };
+            Process.Start(psInfo);
         }
     }
 
